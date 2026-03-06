@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detailed Production Report Generator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Hind Siliguri', sans-serif; background-color: #f3f4f6; padding-bottom: 50px; }
+        .input-card { background: white; border-radius: 8px; padding: 15px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border-top: 4px solid #2563eb; }
+        .section-header { font-weight: 700; font-size: 14px; margin-bottom: 10px; color: #1e40af; border-bottom: 1px solid #e5e7eb; padding-bottom: 5px; }
+        label { font-size: 11px; font-weight: 600; color: #4b5563; display: block; margin-top: 5px; }
+        .input-row { display: flex; gap: 8px; margin-bottom: 5px; }
+        .input-row div { flex: 1; }
+        input { width: 100%; padding: 6px 10px; border: 1px solid #d1d5db; border-radius: 4px; font-size: 13px; background: #fff; }
+        
+        /* PDF Preview Area */
+        #report-output { 
+            background: white; 
+            width: 794px; /* A4 size in pixels at 96dpi */
+            min-height: 1123px; 
+            margin: 20px auto; 
+            padding: 40px; 
+            border: 1px solid #cbd5e1; 
+            position: relative;
+            box-sizing: border-box;
+        }
+        .report-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        .report-table th, .report-table td { border: 1px solid black; padding: 5px 10px; text-align: left; font-size: 13px; color: black; }
+        .report-table th { background-color: #f3f4f6; font-weight: bold; }
+        
+        @media (max-width: 850px) {
+            #report-output { 
+                width: 100%; 
+                padding: 15px; 
+                margin: 10px 0; 
+                min-height: auto;
+                transform: scale(1);
+                overflow-x: auto;
+            }
+        }
+
+        .no-print { display: block; }
+    </style>
+</head>
+<body class="p-4">
+
+    <div class="max-w-6xl mx-auto no-print">
+        <header class="text-center mb-6">
+            <h1 class="text-2xl font-bold text-slate-800">Inspection Production Report Entry</h1>
+            <p class="text-slate-500 text-sm">প্রতিটি ভ্যালু ইনপুট দিয়ে পিডিএফ সেভ করুন</p>
+        </header>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+            <!-- 1. DAILY BULK -->
+            <div class="input-card">
+                <div class="section-header underline italic">1. Daily Bulk Production (05.03.2026)</div>
+                <label>Date</label>
+                <input type="text" id="in_date" value="05.03.2026">
+                <div class="input-row">
+                    <div><label>A Grade (Yds)</label><input type="text" id="in_db_a_v" value="1,92,082"></div>
+                    <div><label>A Grade (%)</label><input type="text" id="in_db_a_p" value="99.57%"></div>
+                </div>
+                <div class="input-row">
+                    <div><label>A2 Grade (Yds)</label><input type="text" id="in_db_a2_v" value="743"></div>
+                    <div><label>A2 Grade (%)</label><input type="text" id="in_db_a2_p" value="0.39%"></div>
+                </div>
+                <div class="input-row">
+                    <div><label>A3 Grade (Yds)</label><input type="text" id="in_db_a3_v" value="78"></div>
+                    <div><label>A3 Grade (%)</label><input type="text" id="in_db_a3_p" value="0.04%"></div>
+                </div>
+                <div class="input-row">
+                    <div><label>A4 Grade (Yds)</label><input type="text" id="in_db_a4_v" value="00"></div>
+                    <div><label>A4 Grade (%)</label><input type="text" id="in_db_a4_p" value="00%"></div>
+                </div>
+                <label class="text-blue-600">Bulk Total (Yds)</label>
+                <input type="text" id="in_db_total" value="1,92,903">
+            </div>
+
+            <!-- 2. DAILY SAMPLE -->
+            <div class="input-card" style="border-top-color: #f59e0b;">
+                <div class="section-header underline italic">2. Daily Sample Production</div>
+                <div class="input-row">
+                    <div><label>Sample A (Yds)</label><input type="text" id="in_ds_a_v" value="857"></div>
+                    <div><label>Sample A (%)</label><input type="text" id="in_ds_a_p" value="99.66%"></div>
+                </div>
+                <div class="input-row">
+                    <div><label>Sample A2 (Yds)</label><input type="text" id="in_ds_a2_v" value="58"></div>
+                    <div><label>Sample A2 (%)</label><input type="text" id="in_ds_a2_p" value="6.34%"></div>
+                </div>
+                <label class="text-orange-600">Total Sample (Yds)</label>
+                <input type="text" id="in_ds_total" value="915">
+                <label class="mt-4 font-bold text-red-600">Daily Grand Total (Yds)</label>
+                <input type="text" id="in_d_grand" value="1,93,818">
+                <label>Daily Efficiency (%)</label>
+                <input type="text" id="in_d_grand_p" value="99.57%">
+            </div>
+
+            <!-- 3. MONTHLY BULK -->
+            <div class="input-card" style="border-top-color: #10b981;">
+                <div class="section-header underline italic">3. Monthly Bulk (March)</div>
+                <label>Month Range</label>
+                <input type="text" id="in_m_range" value="01.03.2026 to 05.03.2026">
+                <div class="input-row">
+                    <div><label>Bulk A (Yds)</label><input type="text" id="in_mb_a_v" value="10,02,155"></div>
+                    <div><label>A (%)</label><input type="text" id="in_mb_a_p" value="99.73%"></div>
+                </div>
+                <div class="input-row">
+                    <div><label>Bulk A2 (Yds)</label><input type="text" id="in_mb_a2_v" value="2,305"></div>
+                    <div><label>A2 (%)</label><input type="text" id="in_mb_a2_p" value="0.23%"></div>
+                </div>
+                <div class="input-row">
+                    <div><label>Bulk A3 (Yds)</label><input type="text" id="in_mb_a3_v" value="388"></div>
+                    <div><label>A3 (%)</label><input type="text" id="in_mb_a3_p" value="0.04%"></div>
+                </div>
+                <label class="text-green-600">Monthly Bulk Total (Yds)</label>
+                <input type="text" id="in_mb_total" value="10,04,848">
+            </div>
+
+            <!-- 4. MONTHLY SAMPLE -->
+            <div class="input-card" style="border-top-color: #06b6d4;">
+                <div class="section-header underline italic">4. Monthly Sample (March)</div>
+                <div class="input-row">
+                    <div><label>Sample A (Yds)</label><input type="text" id="in_ms_a_v" value="5,823"></div>
+                    <div><label>A (%)</label><input type="text" id="in_ms_a_p" value="88.07%"></div>
+                </div>
+                <div class="input-row">
+                    <div><label>Sample A2 (Yds)</label><input type="text" id="in_ms_a2_v" value="789"></div>
+                    <div><label>A2 (%)</label><input type="text" id="in_ms_a2_p" value="11.93%"></div>
+                </div>
+                <label class="text-cyan-600">Monthly Sample Total (Yds)</label>
+                <input type="text" id="in_ms_total" value="6,612">
+                <label class="mt-4 font-bold text-red-600">Monthly Grand Total (Yds)</label>
+                <input type="text" id="in_m_grand" value="10,11,460">
+                <label>Monthly Efficiency (%)</label>
+                <input type="text" id="in_m_grand_p" value="99.73%">
+            </div>
+
+            <!-- 5. FLOOR STOCK -->
+            <div class="input-card" style="border-top-color: #ef4444;">
+                <div class="section-header underline italic">5. Floor Stock</div>
+                <label>Stock Date</label>
+                <input type="text" id="in_stock_date" value="06.03.2026">
+                <label>Shift / Floor Name</label>
+                <input type="text" id="in_stock_shift" value="A Shift Floor Stock">
+                <label>Total Length Qty (Meter)</label>
+                <input type="text" id="in_stock_v" value="41,731">
+            </div>
+        </div>
+
+        <div class="flex flex-wrap gap-4 justify-center mb-10 no-print">
+            <button onclick="renderReport()" class="bg-slate-800 text-white px-8 py-3 rounded-lg font-bold hover:bg-black transition">Preview Report</button>
+            <button id="downloadBtn" onclick="downloadPDF()" class="bg-blue-600 text-white px-8 py-3 rounded-lg font-bold hover:bg-blue-700 transition">Save as PDF</button>
+        </div>
+    </div>
+
+    <!-- PRINTABLE REPORT AREA -->
+    <div id="report-output-wrap">
+        <div id="report-output">
+            <div class="flex justify-between items-start mb-6">
+                <div>
+                    <h2 style="font-size: 24px; font-weight: bold; border-bottom: 2px solid black; display: inline-block;">INSPECTION PRODUCTION REPORT</h2>
+                    <p style="font-weight: bold; margin-top: 5px;">Date: <span id="p_date"></span></p>
+                </div>
+                <div style="text-align: right; font-style: italic; font-size: 13px;">
+                    Assalamu Alaikum<br>Md. Sabiuddin
+                </div>
+            </div>
+
+            <!-- Daily Section -->
+            <h3 style="font-weight: bold; text-decoration: underline; margin-top: 20px; font-size: 16px;">1. DAILY INSPECTION PRODUCTION (BULK)</h3>
+            <table class="report-table">
+                <thead>
+                    <tr>
+                        <th>Grade</th>
+                        <th>Quantity (Yards)</th>
+                        <th>Percentage (%)</th>
+                    </tr>
+                </thead>
+                <tbody id="p_daily_bulk_rows"></tbody>
+                <tr style="font-weight: bold; background-color: #f9fafb;">
+                    <td>Bulk Total</td>
+                    <td id="p_db_total"></td>
+                    <td>100%</td>
+                </tr>
+            </table>
+
+            <div style="display: grid; grid-template-cols: 1fr 1fr; grid-template-columns: 50% 50%; gap: 20px; margin-top: 20px;">
+                <div style="border: 1px solid black; padding: 10px;">
+                    <p style="font-weight: bold; text-decoration: underline; font-size: 13px;">Daily Sample Production</p>
+                    <table style="width: 100%; margin-top: 5px; font-size: 13px;">
+                        <tbody id="p_daily_sample_rows"></tbody>
+                        <tr style="font-weight: bold; border-top: 1px solid black;">
+                            <td style="padding-top: 5px;">Total Sample</td>
+                            <td style="padding-top: 5px;" id="p_ds_total"></td>
+                        </tr>
+                    </table>
+                </div>
+                <div style="background-color: #f1f5f9; padding: 10px; border: 2px solid black; text-align: center; display: flex; flex-direction: column; justify-content: center;">
+                    <p style="font-size: 11px; font-weight: bold; margin: 0;">DAILY GRAND TOTAL</p>
+                    <p style="font-size: 22px; font-weight: 900; margin: 5px 0;" id="p_d_grand">0</p>
+                    <p style="font-size: 13px; font-weight: bold; margin: 0;">(Efficiency: <span id="p_d_grand_p"></span>)</p>
+                </div>
+            </div>
+
+            <!-- Monthly Section -->
+            <h3 style="font-weight: bold; text-decoration: underline; margin-top: 40px; font-size: 16px;">2. MONTH TO DATE SUMMARY (<span id="p_m_range"></span>)</h3>
+            <div style="display: grid; grid-template-columns: 50% 50%; gap: 20px; margin-top: 10px;">
+                <div>
+                    <p style="font-weight: bold; font-size: 13px; font-style: italic; margin-bottom: 5px;">Monthly Bulk Status:</p>
+                    <table class="report-table">
+                        <tbody id="p_monthly_bulk_rows"></tbody>
+                        <tr style="font-weight: bold;"><td>Bulk Total</td><td id="p_mb_total"></td><td>-</td></tr>
+                    </table>
+                </div>
+                <div>
+                    <p style="font-weight: bold; font-size: 13px; font-style: italic; margin-bottom: 5px;">Monthly Sample Status:</p>
+                    <table class="report-table">
+                        <tbody id="p_monthly_sample_rows"></tbody>
+                        <tr style="font-weight: bold;"><td>Sample Total</td><td id="p_ms_total"></td><td>-</td></tr>
+                    </table>
+                </div>
+            </div>
+
+            <div style="background-color: black; color: white; padding: 12px; margin-top: 20px; display: flex; justify-content: space-between; align-items: center;">
+                <span style="font-weight: bold;">MONTHLY GRAND TOTAL PRODUCTION:</span>
+                <div style="text-align: right;">
+                    <span style="font-size: 20px; font-weight: bold;" id="p_m_grand"></span><br>
+                    <span style="font-size: 11px;">Efficiency: <span id="p_m_grand_p"></span></span>
+                </div>
+            </div>
+
+            <!-- Floor Stock -->
+            <div style="margin-top: 40px; border: 2px solid black; padding: 15px; background-color: #f0f9ff; border-left: 10px solid #1e3a8a;">
+                <h4 style="font-weight: bold; color: #1e3a8a; text-decoration: underline; margin: 0; font-size: 15px;"><span id="p_stock_shift"></span></h4>
+                <p style="font-size: 13px; margin: 5px 0 0 0;">Stock Date: <span id="p_stock_date"></span></p>
+                <p style="font-size: 24px; font-weight: 900; margin: 5px 0 0 0; color: #1e3a8a;">Total Length Qty: <span id="p_stock_v"></span> Meter</p>
+            </div>
+
+            <!-- Signatures -->
+            <div style="margin-top: 100px; display: flex; justify-content: space-between;">
+                <div style="text-align: center; width: 180px; border-top: 1px solid black; padding-top: 5px;">
+                    <p style="font-weight: bold; font-size: 13px; margin: 0;">Md. Sabiuddin</p>
+                    <p style="font-size: 11px; font-style: italic; margin: 0;">Prepared By</p>
+                </div>
+                <div style="text-align: center; width: 180px; border-top: 1px solid black; padding-top: 5px;">
+                    <p style="font-weight: bold; font-size: 13px; margin: 0;">In-Charge / Manager</p>
+                    <p style="font-size: 11px; font-style: italic; margin: 0;">Authorized By</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function renderReport() {
+            const getVal = id => document.getElementById(id).value;
+
+            // Header & Values
+            document.getElementById('p_date').innerText = getVal('in_date');
+            document.getElementById('p_m_range').innerText = getVal('in_m_range');
+            document.getElementById('p_stock_date').innerText = getVal('in_stock_date');
+            document.getElementById('p_stock_shift').innerText = getVal('in_stock_shift');
+            document.getElementById('p_stock_v').innerText = getVal('in_stock_v');
+
+            // Daily Bulk
+            document.getElementById('p_daily_bulk_rows').innerHTML = `
+                <tr><td>A Grade</td><td>${getVal('in_db_a_v')}</td><td>${getVal('in_db_a_p')}</td></tr>
+                <tr><td>A2 Grade</td><td>${getVal('in_db_a2_v')}</td><td>${getVal('in_db_a2_p')}</td></tr>
+                <tr><td>A3 Grade</td><td>${getVal('in_db_a3_v')}</td><td>${getVal('in_db_a3_p')}</td></tr>
+                <tr><td>A4 Grade</td><td>${getVal('in_db_a4_v')}</td><td>${getVal('in_db_a4_p')}</td></tr>
+            `;
+            document.getElementById('p_db_total').innerText = getVal('in_db_total') + " Yds";
+
+            // Daily Sample
+            document.getElementById('p_daily_sample_rows').innerHTML = `
+                <tr><td style="padding-bottom: 3px;">A Grade</td><td style="padding-bottom: 3px;">${getVal('in_ds_a_v')} (${getVal('in_ds_a_p')})</td></tr>
+                <tr><td>A2 Grade</td><td>${getVal('in_ds_a2_v')} (${getVal('in_ds_a2_p')})</td></tr>
+            `;
+            document.getElementById('p_ds_total').innerText = getVal('in_ds_total') + " Yds";
+            document.getElementById('p_d_grand').innerText = getVal('in_d_grand') + " Yds";
+            document.getElementById('p_d_grand_p').innerText = getVal('in_d_grand_p');
+
+            // Monthly Bulk
+            document.getElementById('p_monthly_bulk_rows').innerHTML = `
+                <tr><td>A Grade</td><td>${getVal('in_mb_a_v')}</td><td>${getVal('in_mb_a_p')}</td></tr>
+                <tr><td>A2 Grade</td><td>${getVal('in_mb_a2_v')}</td><td>${getVal('in_mb_a2_p')}</td></tr>
+                <tr><td>A3 Grade</td><td>${getVal('in_mb_a3_v')}</td><td>${getVal('in_mb_a3_p')}</td></tr>
+            `;
+            document.getElementById('p_mb_total').innerText = getVal('in_mb_total') + " Yds";
+
+            // Monthly Sample
+            document.getElementById('p_monthly_sample_rows').innerHTML = `
+                <tr><td>A Grade</td><td>${getVal('in_ms_a_v')}</td><td>${getVal('in_ms_a_p')}</td></tr>
+                <tr><td>A2 Grade</td><td>${getVal('in_ms_a2_v')}</td><td>${getVal('in_ms_a2_p')}</td></tr>
+            `;
+            document.getElementById('p_ms_total').innerText = getVal('in_ms_total') + " Yds";
+            document.getElementById('p_m_grand').innerText = getVal('in_m_grand') + " Yds";
+            document.getElementById('p_m_grand_p').innerText = getVal('in_m_grand_p');
+        }
+
+        async function downloadPDF() {
+            const btn = document.getElementById('downloadBtn');
+            btn.innerText = "Generating...";
+            btn.disabled = true;
+
+            renderReport();
+            
+            const element = document.getElementById('report-output');
+            const dateFileName = document.getElementById('in_date').value.replace(/\./g, '-');
+
+            const opt = {
+                margin: 0,
+                filename: `Production_Report_${dateFileName}.pdf`,
+                image: { type: 'jpeg', quality: 1 },
+                html2canvas: { 
+                    scale: 2, 
+                    useCORS: true, 
+                    logging: false,
+                    scrollY: 0,
+                    windowWidth: 800
+                },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+            
+            try {
+                // সরাসরি ডাউনলোড ফাংশন
+                await html2pdf().set(opt).from(element).save();
+            } catch (error) {
+                console.error("PDF generation failed", error);
+            } finally {
+                btn.innerText = "Save as PDF";
+                btn.disabled = false;
+            }
+        }
+
+        // ইনিশিয়াল প্রিভিউ
+        window.onload = renderReport;
+    </script>
+</body>
+</html>
